@@ -46,14 +46,14 @@
 //Select options to reduce memory footprint (multiple options allowed)
 #define LCD_UDC        1           /* Enable predefined UDC example*/
 #define LCD_PRINTF     1           /* Enable Stream implementation */
-#define LCD_ICON       1           /* Enable Icon implementation -2.0K codesize*/
-#define LCD_ORIENT     1           /* Enable Orientation switch implementation -0.9K codesize*/
-#define LCD_BIGFONT    1           /* Enable Big Font implementation -0.6K codesize */
-#define LCD_INVERT     1           /* Enable display Invert implementation -0.5K codesize*/
+#define LCD_ICON       0           /* Enable Icon implementation -2.0K codesize*/
+#define LCD_ORIENT     0           /* Enable Orientation switch implementation -0.9K codesize*/
+#define LCD_BIGFONT    0           /* Enable Big Font implementation -0.6K codesize */
+#define LCD_INVERT     0           /* Enable display Invert implementation -0.5K codesize*/
 #define LCD_POWER      1           /* Enable Power control implementation -0.1K codesize*/
-#define LCD_BLINK      1           /* Enable UDC and Icon Blink control implementation -0.8K codesize*/
-#define LCD_CONTRAST   1           /* Enable Contrast control implementation -0.9K codesize*/
-#define LCD_TWO_CTRL   1           /* Enable LCD40x4 (two controller) implementation -0.1K codesize*/
+#define LCD_BLINK      0           /* Enable UDC and Icon Blink control implementation -0.8K codesize*/
+#define LCD_CONTRAST   0           /* Enable Contrast control implementation -0.9K codesize*/
+#define LCD_TWO_CTRL   0           /* Enable LCD40x4 (two controller) implementation -0.1K codesize*/
 #define LCD_FONTSEL    0           /* Enable runtime font select implementation using setFont -0.9K codesize*/
 
 //Select option to activate default fonttable or alternatively use conversion for specific controller versions (eg PCF2116C, PCF2119R, SSD1803, US2066)

@@ -243,20 +243,20 @@ void screenLoop(void){
 }
 
 int main() {
-    radio.powerUp();
-    radio.setRfFrequency(2400 + 101);
-    radio.setTransferSize(10);
-    radio.setCrcWidth(16);
-    radio.setTxAddress(0x007FFFFFFF);
-    radio.setRxAddress(0x007FFFFFFF);
-    radio.enableAutoAcknowledge(NRF24L01P_PIPE_P0);
-    radio.setAirDataRate(NRF24L01P_DATARATE_250_KBPS);
-    radio.enableAutoRetransmit(500, 3);
-    radio.setTransmitMode();
-    radioInterrupt.fall(&interruptHandler);
+    // radio.powerUp();
+    // radio.setRfFrequency(2400 + 101);
+    // radio.setTransferSize(10);
+    // radio.setCrcWidth(16);
+    // radio.setTxAddress(0x007FFFFFFF);
+    // radio.setRxAddress(0x007FFFFFFF);
+    // radio.enableAutoAcknowledge(NRF24L01P_PIPE_P0);
+    // radio.setAirDataRate(NRF24L01P_DATARATE_250_KBPS);
+    // radio.enableAutoRetransmit(500, 3);
+    // radio.setTransmitMode();
+    // radioInterrupt.fall(&interruptHandler);
 
     startScreen();
 
-    ticker.attach(&mainLoop, 0.01);
+    //ticker.attach(&mainLoop, 0.01);
     screenTicker.attach(&screenLoop, 0.5);
 }
