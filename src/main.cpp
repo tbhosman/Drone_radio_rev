@@ -7,6 +7,7 @@ InterruptIn radioInterrupt(D8);
 Ticker ticker, screenTicker;
 AnalogIn throttlePin(PA_4), rollPin(PA_0), pitchPin(PA_1), yawPin(PA_3), pinBattery(PA_7);
 DigitalIn switch1Pin(D4), switch2Pin(D5);
+DigitalOut led(LED1);
 
 nRF24L01P radio(D11,D12,D13,D10,D9);
 
@@ -161,13 +162,14 @@ void mainLoop(void){
     pitchValue = fetchStickValue(pitch);
     yawValue = fetchStickValue(yaw);
 
+
     // pc.printf("Throttle: %u \t", throttleValue);
     // pc.printf("Roll: %u \t", rollValue);
     // pc.printf("Pitch: %u \t", pitchValue);
     // pc.printf("Yaw: %u \n", yawValue);
 
-    switch1 = switch1Pin.read();
-    switch2 = switch2Pin.read();
+    // switch1 = switch1Pin.read();
+    // switch2 = switch2Pin.read();
 
     data[0] = (throttleValue & 0xFF);
     data[1] = throttleValue >> 8;
@@ -177,13 +179,14 @@ void mainLoop(void){
     data[5] = pitchValue >> 8;
     data[6] = (yawValue & 0xFF);
     data[7] = yawValue >> 8;
+    data[8] = 0;
+    data[9] = 0;
     data[8] = ((switch1 & 1) << 1) | (switch2 & 1);
 
     radio.write(NRF24L01P_PIPE_P0, &data[0], 10);
 }
 
 void screenLoop(void){
-
   // Display transmitter battery level
   int batteryLevelTx = (int)(pinBattery.read()*3.3f*3.54f*100); //in mV
     pc.printf("Battery: %d \n", batteryLevelTx);
@@ -194,8 +197,8 @@ void screenLoop(void){
     lcd.printf("%d", batteryLevelTx);
   }
 
-//   // Start blinking screen when battery is low
-//   if (batteryLevelTx<batteryTxCritical){
+//    // Start blinking screen when battery is low
+//    if (batteryLevelTx<batteryTxCritical){
 //     if (screenPowered) {
 //       lcd.off();
 //       screenPowered = false;
@@ -215,48 +218,77 @@ void screenLoop(void){
 //     lcd.print((String) batteryLevelQC);
 //   }
 
-  // Display TRPY data
-
-//     throttleValue = fetchStickValue(throttle);
-//     rollValue = fetchStickValue(roll);
-//     pitchValue = fetchStickValue(pitch);
-//     yawValue = fetchStickValue(yaw);
-
-//   for (int i=0; i<4; i++){
+  for (int i=0; i<4; i++){
     
-//     //set cursor position
-//     if (i==0) lcd.locate(3,2);       //throttle position
-//     else if (i==1) lcd.locate(11,2); //roll position
-//     else if (i==2) lcd.locate(3,3);  //pitch position
-//     else lcd.locate(11,3);           //yaw position
+    uint16_t stickValue = 0;
 
-//     //lcd.printf("biem");
-//     //set value
-//     if (throttleValue>=1000) {
-//       lcd.printf("%u ", throttleValue);
-//     } else if(throttleValue>=100) {
-//       lcd.printf(" %u ", throttleValue);
-//     } else {
-//       lcd.printf("  %u ", throttleValue);
-//     }
-//   }
+    //set cursor position
+    if (i==0) {
+        lcd.locate(2,2); //throttle position
+        stickValue = throttleValue;
+    }
+    else if (i==1) {
+        lcd.locate(10,2); //roll position
+        stickValue = rollValue;
+    }
+    else if (i==2){
+        lcd.locate(2,3); //pitch position
+        stickValue = pitchValue;
+    }
+    else {
+        lcd.locate(10,3); //yaw position
+        stickValue = yawValue;
+    }
+
+    //set value
+    if (stickValue>=1000) {
+      lcd.printf("%u ", stickValue);
+    } else if(stickValue>=100) {
+      lcd.printf(" %u ", stickValue);
+    } else {
+      lcd.printf("  %u  ", stickValue);
+    }
+  }
 }
 
 int main() {
-    // radio.powerUp();
-    // radio.setRfFrequency(2400 + 101);
-    // radio.setTransferSize(10);
-    // radio.setCrcWidth(16);
-    // radio.setTxAddress(0x007FFFFFFF);
-    // radio.setRxAddress(0x007FFFFFFF);
-    // radio.enableAutoAcknowledge(NRF24L01P_PIPE_P0);
-    // radio.setAirDataRate(NRF24L01P_DATARATE_250_KBPS);
-    // radio.enableAutoRetransmit(500, 3);
-    // radio.setTransmitMode();
-    // radioInterrupt.fall(&interruptHandler);
-
+    radio.powerUp();
+    radio.setRfFrequency(2400 + 101);
+    radio.setTransferSize(10);
+    radio.setCrcWidth(16);
+    radio.setTxAddress(0x007FFFFFFF);
+    radio.setRxAddress(0x007FFFFFFF);
+    radio.enableAutoAcknowledge(NRF24L01P_PIPE_P0);
+    radio.setAirDataRate(NRF24L01P_DATARATE_250_KBPS);
+    radio.enableAutoRetransmit(500, 3);
+    radio.setTransmitMode();
+    radioInterrupt.fall(&interruptHandler);
+    radioInterrupt.enable_irq();
+    
     startScreen();
 
-    //ticker.attach(&mainLoop, 0.01);
-    screenTicker.attach(&screenLoop, 0.5);
+    
+    Timer screenTimer = Timer();
+    Timer mainTimer = Timer();
+    
+    screenTimer.start();
+    mainTimer.start();
+
+    uint32_t period_us_main = 10001;
+    uint32_t period_us_screen = 100000;
+
+    while(1) 
+    {
+        if(screenTimer.read_us()>period_us_screen)
+        {
+            screenLoop();
+            screenTimer.reset();
+        }
+
+        if(mainTimer.read_us()>period_us_main)
+        {
+            mainLoop();
+            mainTimer.reset();
+        }
+    }
 }
