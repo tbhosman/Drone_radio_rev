@@ -36,6 +36,9 @@ const uint16_t yawMid = 27350;
 const uint16_t rangeMarginMin = 1000;
 const uint16_t rangeMarginMax = 1000;
 
+int batteryTxCritical = 960; // low battery alert transmitter, 100=1V
+bool backlightOn = false;
+
 enum stickType {throttle, roll, pitch, yaw};
 
 Serial pc(USBTX, USBRX); // tx, rx
@@ -43,7 +46,7 @@ Serial pc(USBTX, USBRX); // tx, rx
 void startScreen(void)
 {
     lcd.setCursor(TextLCD::CurOff_BlkOff);
-    lcd.setBacklight(TextLCD::LightOn);
+    lcd.setBacklight(TextLCD::LightOn); backlightOn = true;
     lcd.printf("Battery tx:     V"); //location 12-15 can be used for 4 voltage digits
     lcd.locate ( 0, 1 );         // go to the 2nd line
     lcd.printf("Battery QC:     V"); //location 12-15 can be used for 4 voltage digits
@@ -189,33 +192,35 @@ void mainLoop(void){
 void screenLoop(void){
   // Display transmitter battery level
   int batteryLevelTx = (int)(pinBattery.read()*3.3f*3.54f*100); //in mV
-    pc.printf("Battery: %d \n", batteryLevelTx);
+  //pc.printf("Battery: %d.%d \n", batteryLevelTx/100, batteryLevelTx%100);
   lcd.locate(11,0);
-  if (batteryLevelTx<10.0f) {
-    lcd.printf(" %d", batteryLevelTx);
+  if (batteryLevelTx<1000) {
+    lcd.printf(" %d.%d", batteryLevelTx/100, batteryLevelTx%100);
   } else {
-    lcd.printf("%d", batteryLevelTx);
+    lcd.printf("%d.%d", batteryLevelTx/100, batteryLevelTx%100);
   }
 
 //    // Start blinking screen when battery is low
-//    if (batteryLevelTx<batteryTxCritical){
-//     if (screenPowered) {
-//       lcd.off();
-//       screenPowered = false;
-//       }
-//     else {
-//       lcd.on();
-//       screenPowered = true;
-//     } 
-//   } else if (!screenPowered) lcd.on();
+   if (batteryLevelTx<batteryTxCritical){
+    if (backlightOn) {
+      lcd.setBacklight(TextLCD::LightOff); backlightOn = false;
+      }
+    else {
+      lcd.setBacklight(TextLCD::LightOn); backlightOn = true;
+    } 
+  } else if (!backlightOn) {
+      lcd.setBacklight(TextLCD::LightOn); backlightOn = true;
+  }
 
 //   // Display drone battery level
-//   double batteryLevelQC = (double)(rxBatteryLevel*(3.3/1024.0)*(267.1/46.8)*4.18); //in mV
+   //double batteryLevelQC = (double)(rxBatteryLevel*(3.3/1024.0)*(267.1/46.8)*4.18); //in mV
+        //pc.printf("QC battery level: %f \n", batteryLevelQC);
+
 //   lcd.setCursor(11,1);
 //   if (batteryLevelQC<10.0) {
-//     lcd.print(" " + (String) batteryLevelQC);
+//     lcd.printf(" " + (String) batteryLevelQC);
 //   } else {
-//     lcd.print((String) batteryLevelQC);
+//     lcd.printf((String) batteryLevelQC);
 //   }
 
   for (int i=0; i<4; i++){
@@ -249,6 +254,8 @@ void screenLoop(void){
       lcd.printf("  %u  ", stickValue);
     }
   }
+    uint16_t batteryLevelQC = (uint16_t)rxBuffer[1] << 8 | rxBuffer[0];
+    pc.printf("rx value: %u\n", batteryLevelQC);
 }
 
 int main() {
