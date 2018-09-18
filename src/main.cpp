@@ -13,7 +13,8 @@ nRF24L01P radio(D11,D12,D13,D10,D9);
 
 char rxBuffer[10], data[10];
 uint8_t status, pos = 0, signalStrengthArray[256], signalStrength, signalStrengthRaw;
-uint16_t throttleValue, rollValue, pitchValue, yawValue, sum = 0;
+uint16_t throttleValue, sum = 0;
+int16_t rollValue, pitchValue, yawValue;
 bool switch1, switch2, packetReceived;
 
 I2C i2c_lcd(I2C_SDA, I2C_SCL);
@@ -51,9 +52,9 @@ void startScreen(void)
     lcd.locate ( 0, 1 );         // go to the 2nd line
     lcd.printf("Battery QC:     V"); //location 12-15 can be used for 4 voltage digits
     lcd.locate ( 0, 2 );         // go to the 3rd line
-    lcd.printf("T:      R: ");
+    lcd.printf("T:       R: ");
     lcd.locate ( 0, 3 );         // go to the 4th line
-    lcd.printf("P:      Y: ");
+    lcd.printf("P:       Y: ");
 }
 
 uint16_t fetchStickValue(stickType stick){
@@ -161,9 +162,9 @@ void interruptHandler(void){
 
 void mainLoop(void){
     throttleValue = fetchStickValue(throttle);
-    rollValue = fetchStickValue(roll);
-    pitchValue = fetchStickValue(pitch);
-    yawValue = fetchStickValue(yaw);
+    rollValue = fetchStickValue(roll)-32768;
+    pitchValue = fetchStickValue(pitch)-32768;
+    yawValue = fetchStickValue(yaw)-32768;
 
 
     // pc.printf("Throttle: %u \t", throttleValue);
@@ -191,7 +192,7 @@ void mainLoop(void){
 
 void screenLoop(void){
   // Display transmitter battery level
-  int batteryLevelTx = (int)(pinBattery.read()*3.3f*3.54f*100); //in mV
+  int batteryLevelTx = (int)((pinBattery.read()*3.3f*3.54f*100)*2-920); //in mV
   //pc.printf("Battery: %d.%d \n", batteryLevelTx/100, batteryLevelTx%100);
   lcd.locate(11,0);
   if (batteryLevelTx<1000) {
@@ -225,7 +226,7 @@ void screenLoop(void){
 
   for (int i=0; i<4; i++){
     
-    uint16_t stickValue = 0;
+    int32_t stickValue = 0;
 
     //set cursor position
     if (i==0) {
@@ -233,7 +234,7 @@ void screenLoop(void){
         stickValue = throttleValue;
     }
     else if (i==1) {
-        lcd.locate(10,2); //roll position
+        lcd.locate(11,2); //roll position
         stickValue = rollValue;
     }
     else if (i==2){
@@ -241,17 +242,21 @@ void screenLoop(void){
         stickValue = pitchValue;
     }
     else {
-        lcd.locate(10,3); //yaw position
+        lcd.locate(11,3); //yaw position
         stickValue = yawValue;
     }
 
     //set value
-    if (stickValue>=1000) {
-      lcd.printf("%u ", stickValue);
+    if (stickValue<=-10000){
+      lcd.printf("%d", stickValue);
+    } else if((stickValue>=10000)||(stickValue<=-1000)) {
+      lcd.printf("%d ", stickValue);    
+    } else if((stickValue>=1000)||(stickValue<=-100)) {
+      lcd.printf("%d  ", stickValue);
     } else if(stickValue>=100) {
-      lcd.printf(" %u ", stickValue);
+      lcd.printf(" %d ", stickValue);
     } else {
-      lcd.printf("  %u  ", stickValue);
+      lcd.printf("  %d  ", stickValue);
     }
   }
     uint16_t batteryLevelQC = (uint16_t)rxBuffer[1] << 8 | rxBuffer[0];
