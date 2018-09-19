@@ -151,7 +151,7 @@ void interruptHandler(void){
         signalStrengthRaw = 100;
     }
     if (status & 64){ // RX received
-        radio.read((status & 14) >> 1, &rxBuffer[0],2);
+        radio.read((status & 14) >> 1, &rxBuffer[0],4);
         radio.setRegister(0x07,64);
         packetReceived = true;
     }
@@ -213,16 +213,18 @@ void screenLoop(void){
       lcd.setBacklight(TextLCD::LightOn); backlightOn = true;
   }
 
-//   // Display drone battery level
-   //double batteryLevelQC = (double)(rxBatteryLevel*(3.3/1024.0)*(267.1/46.8)*4.18); //in mV
-        //pc.printf("QC battery level: %f \n", batteryLevelQC);
-
-//   lcd.setCursor(11,1);
-//   if (batteryLevelQC<10.0) {
-//     lcd.printf(" " + (String) batteryLevelQC);
-//   } else {
-//     lcd.printf((String) batteryLevelQC);
-//   }
+// Display drone battery level
+  uint16_t batteryLevelQC_uint = (uint16_t)rxBuffer[1] << 8 | rxBuffer[0];
+    //pc.printf("rx battery: %u\n", batteryLevelQC_uint);
+  int batteryLevelQC = (int) ((float)batteryLevelQC_uint)/65536.0f * 3.3f * 5.854f * 100.0f; //in mV
+    //pc.printf("decoded rx battery: %u\n", batteryLevelQC_uint);
+  pc.printf("Battery QC: %d.%dV \n", batteryLevelQC/100, batteryLevelQC%100);
+  lcd.locate(11,1);
+  if (batteryLevelQC<1000) {
+    lcd.printf(" %d.%d", batteryLevelQC/100, batteryLevelQC%100);
+  } else {
+    lcd.printf("%d.%d", batteryLevelQC/100, batteryLevelQC%100);
+  }
 
   for (int i=0; i<4; i++){
     
@@ -256,11 +258,9 @@ void screenLoop(void){
     } else if(stickValue>=100) {
       lcd.printf(" %d ", stickValue);
     } else {
-      lcd.printf("  %d  ", stickValue);
+      lcd.printf("  %d   ", stickValue);
     }
   }
-    uint16_t batteryLevelQC = (uint16_t)rxBuffer[1] << 8 | rxBuffer[0];
-    pc.printf("rx value: %u\n", batteryLevelQC);
 }
 
 int main() {
