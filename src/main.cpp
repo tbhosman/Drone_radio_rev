@@ -193,12 +193,12 @@ void mainLoop(void){
 void screenLoop(void){
   // Display transmitter battery level
   int batteryLevelTx = (int)((pinBattery.read()*3.3f*3.54f*100)*2-920); //in mV
-  //pc.printf("Battery: %d.%d \n", batteryLevelTx/100, batteryLevelTx%100);
+  //pc.printf("Battery: %d.%02d \n", batteryLevelTx/100, batteryLevelTx%100);
   lcd.locate(11,0);
   if (batteryLevelTx<1000) {
-    lcd.printf(" %d.%d", batteryLevelTx/100, batteryLevelTx%100);
+    lcd.printf(" %d.%02d", batteryLevelTx/100, batteryLevelTx%100);
   } else {
-    lcd.printf("%d.%d", batteryLevelTx/100, batteryLevelTx%100);
+    lcd.printf("%d.%02d", batteryLevelTx/100, batteryLevelTx%100);
   }
 
 //    // Start blinking screen when battery is low
@@ -218,12 +218,12 @@ void screenLoop(void){
     //pc.printf("rx battery: %u\n", batteryLevelQC_uint);
   int batteryLevelQC = (int) ((float)batteryLevelQC_uint)/65536.0f * 3.3f * 5.854f * 100.0f; //in mV
     //pc.printf("decoded rx battery: %u\n", batteryLevelQC_uint);
-  pc.printf("Battery QC: %d.%dV \n", batteryLevelQC/100, batteryLevelQC%100);
+  pc.printf("Battery QC: %d.%02dV \n", batteryLevelQC/100, batteryLevelQC%100);
   lcd.locate(11,1);
   if (batteryLevelQC<1000) {
-    lcd.printf(" %d.%d", batteryLevelQC/100, batteryLevelQC%100);
+    lcd.printf(" %d.%02d", batteryLevelQC/100, batteryLevelQC%100);
   } else {
-    lcd.printf("%d.%d", batteryLevelQC/100, batteryLevelQC%100);
+    lcd.printf("%d.%02d", batteryLevelQC/100, batteryLevelQC%100);
   }
 
   for (int i=0; i<4; i++){
