@@ -6,7 +6,7 @@
 InterruptIn radioInterrupt(D8);
 Ticker ticker, screenTicker;
 AnalogIn throttlePin(PA_4), rollPin(PA_0), pitchPin(PA_1), yawPin(PA_3), pinBattery(PA_7);
-DigitalIn switch1Pin(D4), switch2Pin(D5);
+DigitalIn switch1Pin(D3), switch2Pin(D6);
 DigitalOut led(LED1);
 
 nRF24L01P radio(D11,D12,D13,D10,D9);
@@ -172,8 +172,10 @@ void mainLoop(void){
     // pc.printf("Pitch: %u \t", pitchValue);
     // pc.printf("Yaw: %u \n", yawValue);
 
-    // switch1 = switch1Pin.read();
-    // switch2 = switch2Pin.read();
+    switch1 = switch1Pin.read();
+    switch2 = switch2Pin.read();
+    // pc.printf("S1: %d \t", switch1);
+    // pc.printf("S2: %d \n", switch2);
 
     data[0] = (throttleValue & 0xFF);
     data[1] = throttleValue >> 8;
@@ -218,7 +220,7 @@ void screenLoop(void){
     //pc.printf("rx battery: %u\n", batteryLevelQC_uint);
   int batteryLevelQC = (int) ((float)batteryLevelQC_uint)/65536.0f * 3.3f * 5.854f * 100.0f; //in mV
     //pc.printf("decoded rx battery: %u\n", batteryLevelQC_uint);
-  pc.printf("Battery QC: %d.%02dV \n", batteryLevelQC/100, batteryLevelQC%100);
+    //pc.printf("Battery QC: %d.%02dV \n", batteryLevelQC/100, batteryLevelQC%100);
   lcd.locate(11,1);
   if (batteryLevelQC<1000) {
     lcd.printf(" %d.%02d", batteryLevelQC/100, batteryLevelQC%100);
