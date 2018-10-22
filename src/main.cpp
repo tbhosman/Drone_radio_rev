@@ -34,8 +34,8 @@ const uint16_t yawMax = 62000;
 const uint16_t yawMid = 27350;
 
 // Dead area of minimum and maximum stick values
-const uint16_t rangeMarginMin = 1000;
-const uint16_t rangeMarginMax = 1000;
+const uint16_t rangeMarginMin = 1500;
+const uint16_t rangeMarginMax = 1500;
 
 int batteryTxCritical = 960; // low battery alert transmitter, 100=1V
 bool backlightOn = false;
